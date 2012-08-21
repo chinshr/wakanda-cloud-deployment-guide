@@ -1,68 +1,229 @@
 # Wakanda Deployment Guide
 
-## Setup on Windows Azure 2008 Server
+## Setup Windows 2008 Server with Windows Azure
 
-Signup to Windows Azure 90-day free trial (you will need a valid credit card, a phone or mobile phone) at http://www.windowsazure.com/en-us/pricing/free-trial/
+Sign up to Windows Azure's 90-day free trial (you will need a valid credit card, a phone or mobile phone) at:
 
-After you have signed up you will need to sign up to "Virtual Machines & Virtual Networks" in the Preview Features section of your account at https://account.windowsazure.com/PreviewFeatures/. You will be immediately approved.
+    http://www.windowsazure.com/en-us/pricing/free-trial/
 
-Go to the Manage section at http://manage.windowsazure.com/, select Virtual Machines on the left, select "Create a virtual machine" and click on "From Gallery".
+After you sign in to your new Azure account, you will need to separately register for the "Virtual Machines & Virtual Networks" section in the Preview Features in your account. Sign up by navigating to:
 
-From the list, select "Windows Server 2008 R2 SP1", hit Next.
+    https://account.windowsazure.com/PreviewFeatures/. 
 
-At VM Configuration, choose a virtual machine name, e.g. Win8Server1, choose a password and select "Small (1 core, 1.75 GB Memory)" and hit Next.
+You are approved instantaneously after rolling in and are ready to go to start your first virtual server.
 
-At VM Mode, select "Standalone Virtual Machine", DNS name e.g. wakobar.cloudapp.net, Storage Account "Use Automatically Generated Storage Account", Region, e.g. "West US" and hit Next.
+Let's do that and navigate to your Azure Portal, bring up the Azure manager at
 
-On VM Options, keep "(None)" and click Next. You will see a virutal machines list. Your machine will startup and should be ready within 15 minute. 
+    http://manage.windowsazure.com/
+    
+select the "Virtual Machines" tab on the left, and click on "+ New" on the  bottom left menu, select Virtual Machine again and proceed with "From Gallery" in the selection.
 
-Now click on "Connect" a remote desktop protocol configuration file is generated. Go ahead and open it. When prompted for the login information provide your user:Administrator, password:<password you chose>, and domain:wakobar.cloudapp.com. If prompted for a certificate, just confirm and continue.
+From the list, choose 
 
-Now attach storage to the VM, go to the list of virtual machines and select yours. Select "Attach", keep the default selection and enter 5 GB for the drive size and hit Next. It will take some time to attach the storage.
+    "Windows Server 2008 R2 SP1 July 2012"
+    
+and hit Next.
 
-Connect to the virtual machine again. After you log on to the virtual machine, open Server Manager (icon in the status bar). In the left pane, expand "Storage" (bottom), and then click "Disk Management" (bottom). Right-click Disk 2, and then select "New Simple Volume...". Keep on clicking next on the wizard until done.
+You are then brought to the "VM Configuration" page of wizard. Choose a virtual machine name, e.g. Win8Server1, along with a password (confirm password) and select 
 
+    "Medium (2 cores, 3.5 GB Memory)"
+    
+and hit Next.
 
-Sign in back to https://manage.windowsazure.com, click on your running virtual machine and click on Endpoints (below the server name). Select "Add Entpoint" (action bar below). 
+Note: At this point, Wakanda requires a two core CPU (or higher) on Windows to run properly. A smaller, e.g. 1 GB memory, or higher, configuration is sufficient.
 
-In the modal, chose "Add Endpoint", hit next. Enter "MyTCPEndpoint1" as name, keep protocol TCP, enter 80 for public port, enter 80 for private port, hit next. Wait until finished (5 minutes).
+At VM Mode, select 
 
+    "Standalone Virtual Machine"
 
+and a DNS name, e.g. wakobar.cloudapp.net, the URL under which your app will be available at. For the Storage Account" keep the "Automatically Generated Storage Account", and pick your region, e.g. "West US", or whatever is closest to you as latency time may vary. Hit Next.
 
-## Setup up on Ubuntu Server 12.04
+On VM Options, under "Availability Set" keep "(None)" and hit Next. 
+
+You will now see a list of your virutal machines with the one you just added. Your newly created machine is starting up and should be ready within a few minutes. 
+
+Once the VM is provisioned, you may need to start the server manually. So select the virtual machine in the list, e.g. "Win8Server1" and click on "Restart" in the menu (bottom).
+
+Let's configure the endpoints of the VM. With endpoints you define outbound communication by opening additional ports and protocols. So on the VM detail page, click on Endpoints (in the top bar just below the server name). There is one endpoint configured ("Remote Desktop", tcp, port 3389).
+
+Select "Add Endpoint" (menu bar in the bottom), and click on Add Endpoint again in the radio buttons, now hit Next. Enter "http" as the name of the new endpoint, select protocol TCP, enter 80 for public port, enter 8081 for private port, now hit Next. 
+
+Note: We assume that the Wakanda app we want to install on the server is running on port 8081. Otherwise, change your private port to whatever your Wakanda solution is running on.
+
+Repeat the previous step for each of the following ports/apps:
+
+    PUBLIC PORT  DESCRIPTION                                PRIVATE
+    80           "http"                                     8081
+    443          "https"                                    ???
+    4443         "wak-debug", Wakanda remote debugging      4443
+    8080         "wak-admin", Wakanda Admin                 8080
+
+Note: It may take a few minutes before each endpoint becomes active.
+
+Now, on the VM detail page, click on "Connect". A remote desktop protocol configuration file is generated and downloaded to your machine (make sure you hold on to it). Go ahead and open it (given, you must have Remote Desktop Connection installed on your machine). When prompted for the login credentials provide your user:Administrator, password:<password you chose when creating the VM>, and optionally, the domain e.g. wakobar.cloudapp.com. If prompted for a certificate, just confirm and continue. You should now get connected to the server instance.
+
+Optional: 
+
+Attach storage to the VM. Go to the list of virtual machines and select yours. Select "Attach", keep the default selection and enter 5 GB for the drive size and hit Next. It will take some time to attach the storage. Connect to the virtual machine again. After you log on to the virtual machine, open Server Manager (icon in the status bar). In the left pane, expand "Storage" (bottom), and then click "Disk Management" (bottom). Right-click Disk 2, and then select "New Simple Volume...". Keep on clicking next on the wizard until done.
+
+You can install your Software on this storage and reuse the storage from each VM you install.
+
+## Optional IIS Install and Configuration
+
+Install IIS on your VM by adding a new role in the Server Manager.
+
+To route through from your IIS to the Wakanda Serer you need to install a component/plugin for IIS that is called "Application Request Routing". Follow the download links inside `http://myitblog.in/?paged=18`
+
+In order to request a regular Web request to the Wakanda application, install Application Request Routing to IIS.
+
+Resources:
+
+http://support.esri.com/es/knowledgebase/techarticles/detail/36021
+    http://learn.iis.net/page.aspx/489/using-the-application-request-routing-module/
+
+    $ %windir%\System32\inetsrv\appcmd.exe set config -section:webFarms -[name='myServerFarm'].[address='127.0.0.1'].applicationRequestRouting.httpPort:8080
+
+## Install Wakanda on Windows 2008 Server
+
+Login to your server instance using Remote Desktop Client.
+
+* On Windows Azure: double-click on the generated Remote Desktop Client file you have previously downloaded, e.g. Win8Server1.rdp
+
+* On Amazon EC2: Copy & paste the public server location into the Remote Desktop Client location, using username: Administrator, password: <decrypted password, see Amazon section>
+
+Open IE on the Server machine and direct to the downloads area of Wakanda:
+
+    http://www.wakanda.org/downloads
+
+Go to the Wakanda for Windows section and download:
+
+    "Server 64-bit"
+
+Open the archive and copy the contents to Desktop. You should now see a folder:
+
+    /Users/Administrator/Desktop/Wakanda\ Server
+
+We need to configure the Firewall to let incoming traffic through the Wakanda Server. In Control Panel navigate to "Configure Windows Firewall". In the top-left corner, click on "Allow a program or feature through Windows Firewall". Click on "Allow another program..." and browse to "/Users/Administrator/Wakanda\ Server\Wakanda\ Server.exe", click on "Add" and OK.
+
+Launch the Wakanda Server in "/Users/Administrator/Wakanda\ Server\Wakanda\ Server.exe". Click on "Run" if you should see a security warning.
+
+You should see the following message in a console windows:
+
+    Welcome to Wakanda Server!
+    
+    Publishing solution "DefaultSolution"
+        Project "ServerAdmin" published at 127.0.0.1 on port 8080
+
+Note: If you don't see the full text output (avove), you may have configured your server incorrectly. Remember, your server instance needs to run 2 cores, or more.
+
+To check if you server is publicly accessible, open up a browser (Chrome, Safari, Firefox) and enter the location (you get the IP address or DNS of your public server from the Azure/Amazon console.), e.g.:
+
+    http://168.62.204.176:8080
+
+You should see Wakanda admin interface launch inside the browser.
+
+Back in the RDC open an IE to download an already written Wakanda solution. Navigate to 
+
+    https://github.com/davidrobbins/pto
+
+Click on the ZIP button next to the repository address and download the archive (select open). Copy the files and rename the folder:
+
+    /Users/Administrator/apps/pto
+
+Finally, you want to add the application to the Wakanda app server. Navigate to the sever admin, either on the Windows server or on your local browser, e.g. http://168.62.204.176:8080/. 
+
+Click on "Browse" and enter the following location of your app:
+
+    C:/Users/Administrator/apps/pto/PTOb201.waSolution
+
+Checking back on your server in the Wakanda Server window, you should see something like the following:
+
+    Welcome to Wakanda Server!
+
+    Publishing solution "DefaultSolution"
+        Project "ServerAdmin" published at 127.0.0.1 on port 8080
+    
+    Solution closed
+    
+    Published solution "PTOb201"
+        Project "PTOb201" published at 127.0.0.1 on port 8081
+
+## Setup Ubuntu Server 12.04 with Windows Azure
 
 Go to your Azure manager https://manage.windowsazure.com/, click on Virtual Machines and hit "New". Select Virtual Machine and "From Gallery".
 
-In the Wizard "Ubuntu Server 12.04 LTS" and hit Next.
+In the Wizard, select:
 
-On VM Configuration choose a virtual machine name, e.g. Ubuntu12Server1, select a new user, e.g. "deploy", add password, select "Small (1 core, 1.75 GB Memory)", leave "Upload SSH key for authentication" unchecked and hit Next.
+    "Ubuntu Server 12.04 LTS"
+
+and hit Next.
+
+On VM Configuration choose a virtual machine name, e.g. Ubuntu12Server1, select a new user, e.g. "deploy", add password, select 
+
+    "Small (1 core, 1.75 GB Memory)"
+
+You can leave "Upload SSH key for authentication" unchecked at this point and hit Next.
 
 On VM Mode select Standalone Virtual Machine, DNS Name, e.g. wakofoo.cloudapp.net, storage account "Use Automatic generated storage account", keep region "West Coast" or change, hit Next.
 
 VM Options, no additions, next to finish the wizard and create the VM (takes a few minutes). Note: if the virtual machine shows "Stopped" in Status, try to restart it from the menu (below).
 
-Click on your Ubuntu virtual machine https://manage.windowsazure.com to get to the detail page. On the machine's dashboard page navigate to "SSH Details" and get get the location to your machine.
+Before we can access the server admin, we need to configure endpoints to make your app publicly available. Navigate to:
 
-To login to your VM, install Putty first (you need a SSH client) or use the command line on OS X/Linux. Inside the console, e.g., enter:
+    https://manage.windowsazure.com
 
-    ssh -p 22 deploy@wakofoo.cloudapp.net 
+Click on your Ubuntu VM, click on "ENDPOINTS" (top, under your server name), select "Add endpoint" and hit next, enter a name, e.g. "wak-manager", protocol, e.g. TCP, public port 8080, and private port 8080, and hit Next/Finish (this may take a few minutes).
 
-Download the latest (production) release. Navigate to http://download.wakanda.org/ProductionChannel and pick the one you want to download and install, the `>` indicates a command line prompt:
+Create endpoints for each of the following ports: 
 
-    > wget http://download.wakanda.org/.../Wakanda-Server-x64-v2.tar.gz
+    PUBLIC PORT  DESCRIPTION                                PRIVATE
+    80           "http"                                     8081
+    443          "https"
+    4443         "wak-debug", Wakanda remote debugging
+    8080         "wak-admin", Wakanda Admin
+
+Click on your Ubuntu virtual machine https://manage.windowsazure.com to get to the detail page. On the machine's dashboard page navigate to "SSH Details" and get copy the location of your machines public IP address or DNS.
+
+To login to your VM, install Putty first (if you are on Windows and need a SSH client) or use the command line on OS X/Linux. 
+
+    $ ssh <user>@<server>
+
+E.g. remember you can paste the public server IP/DNS into the terminal:
+
+    $ ssh -p 22 deploy@wakofoo.cloudapp.net 
+
+or,
+
+    $ ssh deploy@186.10.2.123 
+
+## Install Wakanda on Ubuntu
+
+In a terminal (on your local machine) connect to your Ubuntu server, deploy account, e.g.
+
+    > ssh deploy@wakofoo.cloudapp.net
+    Password: <enter password>
+    deploy@Ubuntu12Server1:~$ 
+    
+You will be in the `deploy` home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd` and enter, you should be back in your home folder.
+
+Download the latest (production) release. Outside your terminal, browse to
+
+    http://download.wakanda.org/ProductionChannel
+
+and pick a build the you want to download and install. Right click on the downloadable package and copy the link. Then return to the terminal, at the prompt (the `$` indicates a command line prompt) enter the following (paste the link):
+
+    $ wget http://download.wakanda.org/.../Wakanda-Server-x64-v2.tar.gz
 
 Unzip the downloaded `.tar.gz` file into the deploy user's root folder, e.g. like this:
 
-    > tar xzvf Wakanda-Server-x64-v2.tar.gz
+    $ tar xzvf Wakanda-Server-x64-v2.tar.gz
 
 Launch the Server like this (don't omit the ampersand, it will make Wakdanda run in the background):
 
-    > ~/Wakanda\ Server/Wakanda &
+    $ ~/Wakanda\ Server/Wakanda &
     Welcome to Wakanda Server!
     Publishing solution "DefaultSolution"
     Project "ServerAdmin" published at 127.0.0.1 on port 8080
-
-Before we can access the server admin, we need to configure an endpoint for port 8080. Navigate to https://manage.windowsazure.com click  your ubuntu VM, click on "ENDPOINTS", select "Add endpoint" and hit next, call it e.g. "wak-manager", Protocol: TCP, public port 8080, private port 8080, hit Next/Finish (this may take a few minutes).
 
 Access the server manager from your public browser like (you get the public IP address from your Azure managing console):
 
@@ -88,6 +249,58 @@ Before you can access the application, add another endpoint for port 8081.
 
 Access the app here:
 
+    http://168.62.7.116
+
+In case you are not re-routing port 80 to your private 8081 port you can access it here:
+
     http://168.62.7.116:8081
 
-Go crazy!
+You should see the wonderful PTO application in action. Enjoy!
+
+# Amazon AWS
+
+## Setup Windows Server
+
+Signup or sign in to your to Amazon AWS. When you sign in, make sure you will have a telephone number and your credit card ready. Amazon will only charge your card if you using computing time. You can always shut-down your server.
+
+Go to the Management Console at https://console.aws.amazon.com in your browser and click on EC2.
+
+Select Launch Instance. It brings up a setup wizard, sinde choose the first option Classic Wizzard.
+
+On the Choose an AMI page, click on the "Community AMIs" tab, set search filter to "All Images" and look for the following "Windows Server with Wakanda" images:
+
+    (ami-14ce687d)
+    -> ami-cbc87da2  Default Wakanda Server 2008 R2 64-bit
+
+Continue by clicking "Select" next to the matching AMI in the list.
+
+On the "Instance Details" step of the wizard, select 
+
+    * Number of instances: 1
+    * Instance Type: Micro (t1.micro, 613 MiB)
+    * Select Launch Instances, as EC2, Availability Zone: "No Preference" (or us-east-1a, etc. if you prefer)
+
+Hit Next onto the Advanced options.
+
+    * Kernel ID: Use Default
+    * RAM Disk ID: Use Default
+    * Monitoring: off
+    * Keep everything else as default
+
+Hit Continue to the next step. 
+
+On the Storage Device Configuration you should see the following default storage mountpoint in your list:
+
+    Type    Device       Snapshot ID      Size     Volume Type   Delete on Termination
+    Root    /dev/sda1    snap-946b85eb    30GiB    standard      true
+
+Hit the Edit button next to the storage device and change Deleteon Terminate to false, select Save, and then hit Next to continue.
+
+On the adding tags to your instance hit Next to continue.
+
+On the Create Key Pair step of the Wizard select "Create a new Key Pair", 1. Enter a name for your key pair, e.g. "wakowin" and 2. Click to create your key pair: Hit Create & Download your Key Pair. It will then bring you to the next step of the Wizard.
+
+On the Configure Firewall, choose the default item in the Security Groups. Hit Next to Continue to the Review page and hit Launch to launch the instance. Click "View your instance on the Instance page" or Close and select Instances.
+
+To connect to your newly created instance, open "Remote Desktop Connection" either on Windows or your Mac.
+

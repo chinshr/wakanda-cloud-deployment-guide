@@ -148,6 +148,16 @@ Checking back on your server in the Wakanda Server window, you should see someth
     Published solution "PTOb201"
         Project "PTOb201" published at 127.0.0.1 on port 8081
 
+Access the app here:
+
+    http://168.62.7.116
+
+In case you are not re-routing port 80 to your private 8081 port you can access it here:
+
+    http://168.62.7.116:8081
+
+You should see the wonderful PTO application in action. Enjoy!
+
 ## Setup Ubuntu Server 12.04 with Windows Azure
 
 Go to your Azure manager https://manage.windowsazure.com/, click on Virtual Machines and hit "New". Select Virtual Machine and "From Gallery".

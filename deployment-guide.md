@@ -148,11 +148,11 @@ Checking back on your server in the Wakanda Server window, you should see someth
     Published solution "PTOb201"
         Project "PTOb201" published at 127.0.0.1 on port 8081
 
-Access the app here:
+Access the app on your public IP/DNS, like for example:
 
     http://168.62.7.116
 
-In case you are not re-routing port 80 to your private 8081 port you can access it here:
+Or in case you are not re-routing port 80 to your private 8081 port you can access it like this:
 
     http://168.62.7.116:8081
 

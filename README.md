@@ -1,5 +1,5 @@
 ## About ##
-The Wakanda Cloud Deployment Guide is a reference to deploying your [Wakanda](http://wakanda.org) app in hosted environments.
+The [Wakanda Cloud Deployment Guide](https://github.com/chinshr/wakanda-cloud-deployment-guide/en/wakanda-deployment) is a reference for deploying your [Wakanda](http://wakanda.org) app on hosted environments.
 
 The guide was written by [Juergen Fesslmeier](wakanda@wakanda.org).
 

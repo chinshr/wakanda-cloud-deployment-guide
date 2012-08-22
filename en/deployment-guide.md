@@ -1,6 +1,6 @@
 # Wakanda Deployment Guide
 
-This guide will walk you through the process of deploying your Wakanda app in the Cloud. We will be installing Windows 2008 Server and Ubuntu 12.04 Linux server operating systems on Windows Azure and Amazon EC2 infrastructure. It should take no more than 20 minutes to get your app running, including signup to Windows Azure or Amazon.
+This guide will walk you through the process of deploying your Wakanda app in the Cloud. We will be installing Windows 2008 Server and Ubuntu 12.04 Linux server operating systems on Windows Azure and Amazon EC2 infrastructure. It should take no more than 20 minutes to get your app running, including signing up to Windows Azure or Amazon accounts.
 
 We would love to see if you could share the URL of your app on our forum at http://forum.wakanda.org. Or drop us an email about your experience at wakanda@wakanda.org. We would love to hear from you and happy deploying!
 

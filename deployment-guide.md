@@ -1,12 +1,20 @@
 # Wakanda Deployment Guide
 
+This guide will walk you through the process of deploying your Wakanda app in the Cloud. We will be installing Windows 2008 Server and Ubuntu 12.04 Linux server operating systems on Windows Azure and Amazon EC2 infrastructure. It should take no more than 20 minutes to get your app running, including signup to Windows Azure or Amazon.
+
+We would love to see if you could share the URL of your app on our forum at http://forum.wakanda.org. Or drop us an email about your experience at wakanda@wakanda.org. We would love to hear from you and happy deploying!
+
+The guide was written by [Juergen Fesslmeier](wakanda@wakanda.org).
+
+Special thanks to [David Robbins](http://wakanda.org) for sharing his [vacation management solution (PTO)](https://github.com/davidrobbins/pto).
+
 ## Setup Windows 2008 Server with Windows Azure
 
-Sign up to Windows Azure's 90-day free trial (you will need a valid credit card, a phone or mobile phone) at:
+Go ahead and sign up to Windows Azure's 90-day free trial (you will need a valid credit card, a phone or mobile phone) at:
 
     http://www.windowsazure.com/en-us/pricing/free-trial/
 
-After you sign in to your new Azure account, you will need to separately register for the "Virtual Machines & Virtual Networks" section in the Preview Features in your account. Sign up by navigating to:
+After you sign in to your new Azure account, you will need to register for the "Virtual Machines & Virtual Networks" section in the Preview Features in your account. Sign up by navigating to:
 
     https://account.windowsazure.com/PreviewFeatures/. 
 
@@ -15,22 +23,22 @@ You are approved instantaneously after rolling in and are ready to go to start y
 Let's do that and navigate to your Azure Portal, bring up the Azure manager at
 
     http://manage.windowsazure.com/
-    
+
 select the "Virtual Machines" tab on the left, and click on "+ New" on the  bottom left menu, select Virtual Machine again and proceed with "From Gallery" in the selection.
 
 From the list, choose 
 
     "Windows Server 2008 R2 SP1 July 2012"
-    
+
 and hit Next.
 
 You are then brought to the "VM Configuration" page of wizard. Choose a virtual machine name, e.g. Win8Server1, along with a password (confirm password) and select 
 
     "Medium (2 cores, 3.5 GB Memory)"
-    
+
 and hit Next.
 
-Note: At this point, Wakanda requires a two core CPU (or higher) on Windows to run properly. A smaller, e.g. 1 GB memory, or higher, configuration is sufficient.
+Note: At this point, Wakanda requires a two core CPU (or higher) on Windows to run properly. A smaller, e.g. 1 GB memory, or higher, configuration not enough right now.
 
 At VM Mode, select 
 
@@ -52,11 +60,10 @@ Note: We assume that the Wakanda app we want to install on the server is running
 
 Repeat the previous step for each of the following ports/apps:
 
-    PUBLIC PORT  DESCRIPTION                                PRIVATE
-    80           "http"                                     8081
-    443          "https"                                    ???
-    4443         "wak-debug", Wakanda remote debugging      4443
+    PUBLIC PORT  DESCRIPTION                                PRIVATE PORT
+    80           "http", standard http port                 8081
     8080         "wak-admin", Wakanda Admin                 8080
+    4443         "wak-debug", Wakanda remote debugging      4443
 
 Note: It may take a few minutes before each endpoint becomes active.
 
@@ -68,7 +75,9 @@ Attach storage to the VM. Go to the list of virtual machines and select yours. S
 
 You can install your Software on this storage and reuse the storage from each VM you install.
 
-## Optional IIS Install and Configuration
+## Optional Windows IIS Install and Configuration
+
+Note: This section needs more work.
 
 Install IIS on your VM by adding a new role in the Server Manager.
 
@@ -83,7 +92,7 @@ http://support.esri.com/es/knowledgebase/techarticles/detail/36021
 
     $ %windir%\System32\inetsrv\appcmd.exe set config -section:webFarms -[name='myServerFarm'].[address='127.0.0.1'].applicationRequestRouting.httpPort:8080
 
-## Install Wakanda on Windows 2008 Server
+## Installing Wakanda on Windows 2008 Server
 
 Login to your server instance using Remote Desktop Client.
 
@@ -186,11 +195,10 @@ Click on your Ubuntu VM, click on "ENDPOINTS" (top, under your server name), sel
 
 Create endpoints for each of the following ports: 
 
-    PUBLIC PORT  DESCRIPTION                                PRIVATE
-    80           "http"                                     8081
-    443          "https"
-    4443         "wak-debug", Wakanda remote debugging
-    8080         "wak-admin", Wakanda Admin
+    PUBLIC PORT  DESCRIPTION                                PRIVATE PORT
+    80           "http", standard http port                 8081
+    8080         "wak-admin", Wakanda Admin                 8080
+    4443         "wak-debug", Wakanda remote debugging      4443
 
 Click on your Ubuntu virtual machine https://manage.windowsazure.com to get to the detail page. On the machine's dashboard page navigate to "SSH Details" and get copy the location of your machines public IP address or DNS.
 
@@ -206,15 +214,15 @@ or,
 
     $ ssh deploy@186.10.2.123 
 
-## Install Wakanda on Ubuntu
+## Installing Wakanda on Ubuntu Linux
 
 In a terminal (on your local machine) connect to your Ubuntu server, deploy account, e.g.
 
     > ssh deploy@wakofoo.cloudapp.net
     Password: <enter password>
-    deploy@Ubuntu12Server1:~$ 
+    deploy@ubuntu:~$ 
     
-You will be in the `deploy` home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd` and enter, you should be back in your home folder.
+You will be in the `deploy` user's home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd`, which brings you back to your home folder.
 
 Download the latest (production) release. Outside your terminal, browse to
 
@@ -267,9 +275,9 @@ In case you are not re-routing port 80 to your private 8081 port you can access 
 
 You should see the wonderful PTO application in action. Enjoy!
 
-# Amazon AWS
+## Setup Windows Server 2008 with Amazon EC2
 
-## Setup Windows Server
+Note: This section needs more work.
 
 Signup or sign in to your to Amazon AWS. When you sign in, make sure you will have a telephone number and your credit card ready. Amazon will only charge your card if you using computing time. You can always shut-down your server.
 

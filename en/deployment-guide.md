@@ -2,13 +2,15 @@
 
 This guide will walk you through the process of deploying your Wakanda app in the Cloud. We will be installing Windows 2008 Server and Ubuntu 12.04 Linux server operating systems on Windows Azure and Amazon EC2 infrastructure. It should take no more than 20 minutes to get your app running, including signing up to Windows Azure or Amazon accounts.
 
-We would love to see if you could share the URL of your app on our forum at http://forum.wakanda.org. Or drop us an email about your experience at wakanda@wakanda.org. We would love to hear from you and happy deploying!
+We would love to see if you could share the URL of your app on our forum at http://forum.wakanda.org. Or drop us an email about your experience at wakanda@wakanda.org. Looking forward to hearing from you and happy deploying!
 
 The guide was written by [Juergen Fesslmeier](wakanda@wakanda.org).
 
 Special thanks to [David Robbins](http://wakanda.org) for sharing his [vacation management solution (PTO)](https://github.com/davidrobbins/pto).
 
-## Setup Windows 2008 Server with Windows Azure
+# Setup on Windows Azure
+
+## Windows 2008 Server
 
 Go ahead and sign up to Windows Azure's 90-day free trial (you will need a valid credit card, a phone or mobile phone) at:
 
@@ -75,22 +77,114 @@ Attach storage to the VM. Go to the list of virtual machines and select yours. S
 
 You can install your Software on this storage and reuse the storage from each VM you install.
 
-## Optional Windows IIS Install and Configuration
+## Ubuntu Server 12.04
+
+Go to your Azure manager https://manage.windowsazure.com/, click on Virtual Machines and hit "New". Select Virtual Machine and "From Gallery".
+
+In the Wizard, select:
+
+    "Ubuntu Server 12.04 LTS"
+
+and hit Next.
+
+On VM Configuration choose a virtual machine name, e.g. Ubuntu12Server1, select a new user, e.g. "deploy", add password, select 
+
+    "Small (1 core, 1.75 GB Memory)"
+
+You can leave "Upload SSH key for authentication" unchecked at this point and hit Next.
+
+On VM Mode select Standalone Virtual Machine, DNS Name, e.g. wakofoo.cloudapp.net, storage account "Use Automatic generated storage account", keep region "West Coast" or change, hit Next.
+
+VM Options, no additions, next to finish the wizard and create the VM (takes a few minutes). Note: if the virtual machine shows "Stopped" in Status, try to restart it from the menu (below).
+
+Before we can access the server admin, we need to configure endpoints to make your app publicly available. Navigate to:
+
+    https://manage.windowsazure.com
+
+Click on your Ubuntu VM, click on "ENDPOINTS" (top, under your server name), select "Add endpoint" and hit next, enter a name, e.g. "wak-manager", protocol, e.g. TCP, public port 8080, and private port 8080, and hit Next/Finish (this may take a few minutes).
+
+Create endpoints for each of the following ports: 
+
+    PUBLIC PORT  DESCRIPTION                                PRIVATE PORT
+    80           "http", standard http port                 8081
+    8080         "wak-admin", Wakanda Admin                 8080
+    4443         "wak-debug", Wakanda remote debugging      4443
+
+Click on your Ubuntu virtual machine https://manage.windowsazure.com to get to the detail page. On the machine's dashboard page navigate to "SSH Details" and get copy the location of your machines public IP address or DNS.
+
+To login to your VM, install Putty first (if you are on Windows and need a SSH client) or use the command line on OS X/Linux. 
+
+    $ ssh <user>@<server>
+
+E.g. remember you can paste the public server IP/DNS into the terminal:
+
+    $ ssh -p 22 deploy@wakofoo.cloudapp.net 
+
+or,
+
+    $ ssh deploy@186.10.2.123 
+
+# Setup on Amazon EC2
+
+## Setup of Windows Server 2008
 
 Note: This section needs more work.
 
-Install IIS on your VM by adding a new role in the Server Manager.
+Signup or sign in to your to Amazon AWS. When you sign in, make sure you will have a telephone number and your credit card ready. Amazon will only charge your card if you using computing time. You can always shut-down your server.
 
-To route through from your IIS to the Wakanda Serer you need to install a component/plugin for IIS that is called "Application Request Routing". Follow the download links inside `http://myitblog.in/?paged=18`
+Go to the Management Console at https://console.aws.amazon.com in your browser and click on EC2.
 
-In order to request a regular Web request to the Wakanda application, install Application Request Routing to IIS.
+Select Launch Instance. It brings up a setup wizard, sinde choose the first option Classic Wizzard.
 
-Resources:
+On the Choose an AMI page, click on the "Community AMIs" tab, set search filter to "All Images" and look for the following "Windows Server with Wakanda" images:
 
-http://support.esri.com/es/knowledgebase/techarticles/detail/36021
-    http://learn.iis.net/page.aspx/489/using-the-application-request-routing-module/
+    (ami-14ce687d)
+    -> ami-cbc87da2  Default Wakanda Server 2008 R2 64-bit
 
-    $ %windir%\System32\inetsrv\appcmd.exe set config -section:webFarms -[name='myServerFarm'].[address='127.0.0.1'].applicationRequestRouting.httpPort:8080
+Continue by clicking "Select" next to the matching AMI in the list.
+
+On the "Instance Details" step of the wizard, select 
+
+    * Number of instances: 1
+    * Instance Type: Micro (t1.micro, 613 MiB)
+    * Select Launch Instances, as EC2, Availability Zone: "No Preference" (or us-east-1a, etc. if you prefer)
+
+Hit Next onto the Advanced options.
+
+    * Kernel ID: Use Default
+    * RAM Disk ID: Use Default
+    * Monitoring: off
+    * Keep everything else as default
+
+Hit Continue to the next step. 
+
+On the Storage Device Configuration you should see the following default storage mountpoint in your list:
+
+    Type    Device       Snapshot ID      Size     Volume Type   Delete on Termination
+    Root    /dev/sda1    snap-946b85eb    30GiB    standard      true
+
+Hit the Edit button next to the storage device and change Deleteon Terminate to false, select Save, and then hit Next to continue.
+
+On the adding tags to your instance hit Next to continue.
+
+On the Create Key Pair step of the Wizard select "Create a new Key Pair", 1. Enter a name for your key pair, e.g. "wakowin" and 2. Click to create your key pair: Hit Create & Download your Key Pair. It will then bring you to the next step of the Wizard.
+
+On the Configure Firewall, choose the default item in the Security Groups. Hit Next to Continue to the Review page and hit Launch to launch the instance. Click "View your instance on the Instance page" or Close and select Instances.
+
+To connect to your newly created instance, open "Remote Desktop Connection" either on Windows or your Mac.
+
+## Setup of Ubuntu 12.04 Server
+
+
+
+
+
+
+
+
+
+
+# Installing Wakanda
 
 ## Installing Wakanda on Windows 2008 Server
 
@@ -167,53 +261,6 @@ Or in case you are not re-routing port 80 to your private 8081 port you can acce
 
 You should see the wonderful PTO application in action. Enjoy!
 
-## Setup Ubuntu Server 12.04 with Windows Azure
-
-Go to your Azure manager https://manage.windowsazure.com/, click on Virtual Machines and hit "New". Select Virtual Machine and "From Gallery".
-
-In the Wizard, select:
-
-    "Ubuntu Server 12.04 LTS"
-
-and hit Next.
-
-On VM Configuration choose a virtual machine name, e.g. Ubuntu12Server1, select a new user, e.g. "deploy", add password, select 
-
-    "Small (1 core, 1.75 GB Memory)"
-
-You can leave "Upload SSH key for authentication" unchecked at this point and hit Next.
-
-On VM Mode select Standalone Virtual Machine, DNS Name, e.g. wakofoo.cloudapp.net, storage account "Use Automatic generated storage account", keep region "West Coast" or change, hit Next.
-
-VM Options, no additions, next to finish the wizard and create the VM (takes a few minutes). Note: if the virtual machine shows "Stopped" in Status, try to restart it from the menu (below).
-
-Before we can access the server admin, we need to configure endpoints to make your app publicly available. Navigate to:
-
-    https://manage.windowsazure.com
-
-Click on your Ubuntu VM, click on "ENDPOINTS" (top, under your server name), select "Add endpoint" and hit next, enter a name, e.g. "wak-manager", protocol, e.g. TCP, public port 8080, and private port 8080, and hit Next/Finish (this may take a few minutes).
-
-Create endpoints for each of the following ports: 
-
-    PUBLIC PORT  DESCRIPTION                                PRIVATE PORT
-    80           "http", standard http port                 8081
-    8080         "wak-admin", Wakanda Admin                 8080
-    4443         "wak-debug", Wakanda remote debugging      4443
-
-Click on your Ubuntu virtual machine https://manage.windowsazure.com to get to the detail page. On the machine's dashboard page navigate to "SSH Details" and get copy the location of your machines public IP address or DNS.
-
-To login to your VM, install Putty first (if you are on Windows and need a SSH client) or use the command line on OS X/Linux. 
-
-    $ ssh <user>@<server>
-
-E.g. remember you can paste the public server IP/DNS into the terminal:
-
-    $ ssh -p 22 deploy@wakofoo.cloudapp.net 
-
-or,
-
-    $ ssh deploy@186.10.2.123 
-
 ## Installing Wakanda on Ubuntu Linux
 
 In a terminal (on your local machine) connect to your Ubuntu server, deploy account, e.g.
@@ -274,51 +321,4 @@ In case you are not re-routing port 80 to your private 8081 port you can access 
     http://168.62.7.116:8081
 
 You should see the wonderful PTO application in action. Enjoy!
-
-## Setup Windows Server 2008 with Amazon EC2
-
-Note: This section needs more work.
-
-Signup or sign in to your to Amazon AWS. When you sign in, make sure you will have a telephone number and your credit card ready. Amazon will only charge your card if you using computing time. You can always shut-down your server.
-
-Go to the Management Console at https://console.aws.amazon.com in your browser and click on EC2.
-
-Select Launch Instance. It brings up a setup wizard, sinde choose the first option Classic Wizzard.
-
-On the Choose an AMI page, click on the "Community AMIs" tab, set search filter to "All Images" and look for the following "Windows Server with Wakanda" images:
-
-    (ami-14ce687d)
-    -> ami-cbc87da2  Default Wakanda Server 2008 R2 64-bit
-
-Continue by clicking "Select" next to the matching AMI in the list.
-
-On the "Instance Details" step of the wizard, select 
-
-    * Number of instances: 1
-    * Instance Type: Micro (t1.micro, 613 MiB)
-    * Select Launch Instances, as EC2, Availability Zone: "No Preference" (or us-east-1a, etc. if you prefer)
-
-Hit Next onto the Advanced options.
-
-    * Kernel ID: Use Default
-    * RAM Disk ID: Use Default
-    * Monitoring: off
-    * Keep everything else as default
-
-Hit Continue to the next step. 
-
-On the Storage Device Configuration you should see the following default storage mountpoint in your list:
-
-    Type    Device       Snapshot ID      Size     Volume Type   Delete on Termination
-    Root    /dev/sda1    snap-946b85eb    30GiB    standard      true
-
-Hit the Edit button next to the storage device and change Deleteon Terminate to false, select Save, and then hit Next to continue.
-
-On the adding tags to your instance hit Next to continue.
-
-On the Create Key Pair step of the Wizard select "Create a new Key Pair", 1. Enter a name for your key pair, e.g. "wakowin" and 2. Click to create your key pair: Hit Create & Download your Key Pair. It will then bring you to the next step of the Wizard.
-
-On the Configure Firewall, choose the default item in the Security Groups. Hit Next to Continue to the Review page and hit Launch to launch the instance. Click "View your instance on the Instance page" or Close and select Instances.
-
-To connect to your newly created instance, open "Remote Desktop Connection" either on Windows or your Mac.
 

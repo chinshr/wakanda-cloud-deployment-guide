@@ -10,7 +10,7 @@ Special thanks to [David Robbins](http://wakanda.org) for sharing his [vacation 
 
 # Setup on Windows Azure
 
-## Windows 2008 Server
+## Setup Windows 2008 Server
 
 Go ahead and sign up to Windows Azure's 90-day free trial (you will need a valid credit card, a phone or mobile phone) at:
 
@@ -77,7 +77,9 @@ Attach storage to the VM. Go to the list of virtual machines and select yours. S
 
 You can install your Software on this storage and reuse the storage from each VM you install.
 
-## Ubuntu Server 12.04
+## Setup Ubuntu Server 12.04
+
+Note: If you are on Windows you may want to download [Cygwin](http://www.cygwin.com) for Linux look and feel environment.
 
 Go to your Azure manager https://manage.windowsazure.com/, click on Virtual Machines and hit "New". Select Virtual Machine and "From Gallery".
 
@@ -120,9 +122,14 @@ E.g. remember you can paste the public server IP/DNS into the terminal:
 
     $ ssh -p 22 deploy@wakofoo.cloudapp.net 
 
-or,
+or, in the terminal (on your local machine) connect to your Ubuntu server, deploy account, e.g.
 
-    $ ssh deploy@186.10.2.123 
+    $ ssh deploy@wakofoo.cloudapp.net
+    Password: <enter password>
+    deploy@ubuntu:~$ 
+    
+You will be in the `deploy` user's home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd`, which brings you back to your home folder.
+
 
 # Setup on Amazon EC2
 
@@ -175,14 +182,54 @@ To connect to your newly created instance, open "Remote Desktop Connection" eith
 
 ## Setup of Ubuntu 12.04 Server
 
+Login to AWS and navigate to Instances on http://console.aws.amazon.com/ or by clicking on Instances on Navigation.
 
+Select "Launch Instance", on in the "Create new Instance" screen select "Classic Wizard" and hit Continue.
 
+On the "Quick Start" tab choose:
 
+    Ubuntu Server 12.04 LTS, 64-bit
 
+and then Select.
 
+On the "Instance Detail" step, choose 1 instance of `Small (m1.small, 1.7 GiB)` keep the rest of the default setting and select Continue.
 
+On Advanced Instance Options keep defaults and hit Continue.
 
+On Storage Device Configuration keep defaults and hit Continue.
 
+On Tag Instance Settings keep defaults and hit Continue.
+
+Now on the "Create Key Pair" step of the wizard choose existing (wakowin) or create a new on key pair that you download. Hit Continue.
+
+On the "Configure Firewall" in select the "Create a new Security Group" radio buttons, then enter a group name and description, e.g. wakrules, and on "Inbound Rules" add the following Port numbers and services.
+
+    Port(s)       Service              Source
+    22            SSH                  0.0.0.0/0
+    80            HTTP                 0.0.0.0/0
+    443           HTTPS                0.0.0.0/0
+    8080-8200     Wakanda Solutions    0.0.0.0/0
+    4443          Wakanda Debugger     0.0.0.0/0
+
+Hit Continue.
+
+On the "Review" page of the wizard hit Launch to launch the instance, then Close to close the Wizard.
+
+Now login to your running instance using the downloaded key pair, e.g. `wakowin.pem`. You must change the file permissions of the key pair file, given it is located in `~/.ssh/wakowin.pem`, so do the following:
+
+    chmod 400 ~/.ssh/wakowin.pem
+    ls ~/.ssh/wakowin.pem
+    -r--------@ 1 user  staff  1696 Apr  7 10:20 /Users/j/.ssh/wakuntu.pem
+
+Note: You want to keep the .pem file in a safe place. Once downloaded it cannot be re-downloaded again.
+
+    ssh -i <pem-file> <user>@<public-DNS>
+
+E.g.
+
+    ssh -i ~/.ssh/wakowin.pem ubuntu@ec2-23-21-16-67.compute-1.amazonaws.com
+
+Note: You get the public DNS when you go to Instances and click on your running instance and copy the DNS.
 
 # Installing Wakanda
 
@@ -262,14 +309,6 @@ Or in case you are not re-routing port 80 to your private 8081 port you can acce
 You should see the wonderful PTO application in action. Enjoy!
 
 ## Installing Wakanda on Ubuntu Linux
-
-In a terminal (on your local machine) connect to your Ubuntu server, deploy account, e.g.
-
-    > ssh deploy@wakofoo.cloudapp.net
-    Password: <enter password>
-    deploy@ubuntu:~$ 
-    
-You will be in the `deploy` user's home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd`, which brings you back to your home folder.
 
 Download the latest (production) release. Outside your terminal, browse to
 

@@ -130,7 +130,6 @@ or, in the terminal (on your local machine) connect to your Ubuntu server, deplo
     
 You will be in the `deploy` user's home folder. When you enter `pwd` at the prompt, you should see `/home/deploy`. Otherwise, just enter `cd`, which brings you back to your home folder.
 
-
 # Setup on Amazon EC2
 
 ## Setup of Windows Server 2008
@@ -204,12 +203,15 @@ Now on the "Create Key Pair" step of the wizard choose existing (wakowin) or cre
 
 On the "Configure Firewall" in select the "Create a new Security Group" radio buttons, then enter a group name and description, e.g. wakrules, and on "Inbound Rules" add the following Port numbers and services.
 
-    Port(s)       Service              Source
-    22            SSH                  0.0.0.0/0
-    80            HTTP                 0.0.0.0/0
-    443           HTTPS                0.0.0.0/0
-    8080-8200     Wakanda Solutions    0.0.0.0/0
-    4443          Wakanda Debugger     0.0.0.0/0
+    TCP
+    Port(s)      Service    Source     Description
+    80           HTTP       0.0.0.0/0  Web server
+    443          HTTPS      0.0.0.0/0  SSL
+    1919 - 1921             0.0.0.0/0  Remote debugger port
+    3389         RDP        0.0.0.0/0  ssh
+    4433                    0.0.0.0/0  Admin SSL
+    4443                    0.0.0.0/0  Admin SSL
+    8080 - 8100             0.0.0.0/0  Wakanda apps
 
 Hit Continue.
 
@@ -229,7 +231,19 @@ E.g.
 
     ssh -i ~/.ssh/wakowin.pem ubuntu@ec2-23-21-16-67.compute-1.amazonaws.com
 
-Note: You get the public DNS when you go to Instances and click on your running instance and copy the DNS.
+You get the public DNS when you go http://console.aws.amazon.com/ec2/ click on Instances and select your running instance and copy the DNS.
+
+Use `netstat` to check if all configured ports are open in the firewall, you should see the following:
+
+    $ sudo netstat -anltp | grep "LISTEN"
+    
+    Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+    tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -               
+    tcp6       0      0 :::8080                 :::*                    LISTEN      1599/Wakanda    
+    tcp6       0      0 :::4433                 :::*                    LISTEN      1599/Wakanda    
+    tcp6       0      0 :::8081                 :::*                    LISTEN      1599/Wakanda    
+    tcp6       0      0 :::22                   :::*                    LISTEN      -               
+    tcp6       0      0 :::1919                 :::*                    LISTEN      1599/Wakanda
 
 # Installing Wakanda
 
@@ -318,7 +332,7 @@ and pick a build the you want to download and install. Right click on the downlo
 
     $ wget http://download.wakanda.org/.../Wakanda-Server-x64-v2.tar.gz
 
-Unzip the downloaded `.tar.gz` file into the deploy user's root folder, e.g. like this:
+Unzip the downloaded `.tar.gz` file into the user's root folder, e.g. like this:
 
     $ tar xzvf Wakanda-Server-x64-v2.tar.gz
 
@@ -342,7 +356,13 @@ Install a solution on the machine, e.g.:
 
 Inside the server manager, add the PTO solution. Hit the "Browse" button in the status bar. As Solution path point to the solution location on the server and hit "Launch", such as: 
 
+E.g.
+
     /home/deploy/apps/PTO/PTOb201.waSolution
+
+or on AWS
+
+    /home/ubuntu/apps/PTO/PTOb201.waSolution
 
 On the server terminal you should get a log message like
 
@@ -361,3 +381,28 @@ In case you are not re-routing port 80 to your private 8081 port you can access 
 
 You should see the wonderful PTO application in action. Enjoy!
 
+### Differences in Installation from Dev Channel
+
+Go to the Ubuntu console, and install `unzip` like this:
+
+    $ sudo apt-get install unzip
+
+Then point your local browser to `http://download.wakanda.org/DevChannel`, go to the Linux folder and pick a development build. Right click on `Wakanda-Server-x64.zip` and copy the link.
+
+On the Ubuntu console download the Wakanda Server and unzip the files, like this:
+
+    $ cd
+    $ wget wget http://download.wakanda.org/.../Wakanda-Server-x64.zip
+    $ unzip Wakanda-Server-x64.zip
+
+# Remote Debugging
+
+Given that Wakanda Server and the PTO applications are installed and running on the server, and all TCP ports are configured correctly (see Server installation), launch the Studio on your local machine.
+
+Go to "Run" and choose "Connect to Other Server", enter the remote server's IP address or DNS name in the IP entry field, e.g. 
+
+    ec2-174-129-188-68.compute-1.amazonaws.com
+
+and in the port field enter `4433` then hit Connect.
+
+After the Studio connects to the remote server you can set a breakpoint anywhere in your code or add a language breakpoint using the `debugger` keyword.

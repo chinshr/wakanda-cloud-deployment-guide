@@ -207,11 +207,11 @@ On the "Configure Firewall" in select the "Create a new Security Group" radio bu
     Port(s)      Service    Source     Description
     80           HTTP       0.0.0.0/0  Web server
     443          HTTPS      0.0.0.0/0  SSL
-    1919 - 1921             0.0.0.0/0  Remote debugger port
-    3389         RDP        0.0.0.0/0  ssh
-    4433                    0.0.0.0/0  Admin SSL
-    4443                    0.0.0.0/0  Admin SSL
-    8080 - 8100             0.0.0.0/0  Wakanda apps
+    22           SSH        0.0.0.0/0  ssh
+    8080                    0.0.0.0/0  Admin
+    4433                    0.0.0.0/0  Secure Admin
+    8081 - 8100             0.0.0.0/0  Apps
+    1919 - 1921             0.0.0.0/0  Remote debugger
 
 Hit Continue.
 
@@ -232,6 +232,18 @@ E.g.
     ssh -i ~/.ssh/wakowin.pem ubuntu@ec2-23-21-16-67.compute-1.amazonaws.com
 
 You get the public DNS when you go http://console.aws.amazon.com/ec2/ click on Instances and select your running instance and copy the DNS.
+
+Check the file system disk space usage:
+
+    df -Th
+    
+    Filesystem     Type      Size  Used Avail Use% Mounted on
+    /dev/xvda1     ext4      8.0G  867M  6.8G  12% /
+    udev           devtmpfs  819M   12K  819M   1% /dev
+    tmpfs          tmpfs     331M  168K  331M   1% /run
+    none           tmpfs     5.0M     0  5.0M   0% /run/lock
+    none           tmpfs     827M     0  827M   0% /run/shm
+    /dev/xvdb      ext3      147G  188M  140G   1% /mnt
 
 Use `netstat` to check if all configured ports are open in the firewall, you should see the following:
 
@@ -397,12 +409,79 @@ On the Ubuntu console download the Wakanda Server and unzip the files, like this
 
 # Remote Debugging
 
-Given that Wakanda Server and the PTO applications are installed and running on the server, and all TCP ports are configured correctly (see Server installation), launch the Studio on your local machine.
+Given that Wakanda Server and the PTO applications are installed and running on the server, and all TCP ports are configured correctly (see Server installation).
 
-Go to "Run" and choose "Connect to Other Server", enter the remote server's IP address or DNS name in the IP entry field, e.g. 
+Open a browser and launch the secure admin interface using port `4433` like this:
+
+    https://ec2-174-129-188-68.compute-1.amazonaws.com:4433
+
+Essentially, this is the admin interface over a secure connection.
+
+Launch the Studio on your local machine.
+
+Go to "Run" menu and choose "Connect to Other Server", enter the remote server's IP address or DNS name in the IP entry field, e.g. 
 
     ec2-174-129-188-68.compute-1.amazonaws.com
 
 and in the port field enter `4433` then hit Connect.
 
-After the Studio connects to the remote server you can set a breakpoint anywhere in your code or add a language breakpoint using the `debugger` keyword.
+After the Studio connects to the remote server, you will see a green light on Debugger inside the Studio status bar. 
+
+Now set a breakpoint anywhere in your code or add a language breakpoint using the `debugger` keyword.
+
+Try to hit that breakpoint from your app running on a hosted environment. When hitting the breakpoint, you should see the Wakanda Debugger window popup on your local machine on the exact breakpoint. Go ahead and step-into/through or setup watches, etc.
+
+# SSL Security and Certiciates
+
+http://www.akadia.com/services/ssh_test_certificate.html
+
+Change into a folder where you want to have the keys to be stored in, e.g.:
+
+    cd ~/.ssh
+
+1. Generate a Private Key
+
+The openssl toolkit is used to generate an RSA Private Key and CSR (Certificate Signing Request). It can also be used to generate self-signed certificates which can be used for testing purposes or internal usage.
+Generate a private key:
+
+    openssl genrsa -des3 -out server.key 1024
+
+2. Generate a CSR (Certificate Signing Request)
+
+Once the private key is generated a Certificate Signing Request can be generated. The CSR is then used in one of two ways. Ideally, the CSR will be sent to a Certificate Authority, such as Thawte or Verisign who will verify the identity of the requestor and issue a signed certificate. The second option is to self-sign the CSR, which will be demonstrated in the next section.
+
+    openssl req -new -key server.key -out server.csr
+
+3. Remove Passphrase from Key
+
+One unfortunate side-effect of the pass-phrased private key is that Wakanda will ask for the pass-phrase each time the web server is started.
+
+Use the following command to remove the pass-phrase from the key:
+
+    cp server.key server.key.org
+    openssl rsa -in server.key.org -out server.key
+
+4. Generating a Self-Signed Certificate
+
+At this point you will need to generate a self-signed certificate because you either don't plan on having your certificate signed by a CA, or you wish to test your new SSL implementation while the CA is signing your certificate. This temporary certificate will generate an error in the client browser to the effect that the signing certificate authority is unknown and not trusted.
+
+To generate a temporary certificate which is good for 365 days, issue the 
+following command:
+
+    openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+
+5. Copy keys to the solutions's project folder
+
+   cd PTO/PTOb201
+   mkdir certificates
+   cp ~/.ssl/server.key certificates/key.pem
+   cp ~/.ssl/server.crt certificates/cert.pem
+
+6. Configure the certificate in your Wakanda project
+
+Open the `PTOb201.waSettings` and in the Secure Connections (SSL - TLS). Check "Enable secure connections". Choose port number `8082`, and browse to your "Certificate Path" to where your `server.crt` resides. Save settings and start server. Go to:
+
+    https://localhost:8082
+
+Note: You should receive a browser warning when loading the page as you don't as the certificate is not signed by a Certificate Authority.
+
